@@ -1,0 +1,84 @@
+@name Descent Visualizer
+#[
+    Author: Matthew (FaceInCake) Eppel
+    Date: Jan 9, 2021
+    (c) Notice: Free to take and share. Don't claim false ownership. Don't remove this notice.
+    
+    Uses an EGP to display the visual infinite descent
+    using the inputed Ratio.
+    
+    Remember that the golden ratio, or phi
+    is equal to 1.618033988749895...
+]#
+
+@inputs Ratio:number EGP:wirelink
+@persist EGPS:vector2
+@persist Step:number [X Y W H]:number
+@persist Side:number
+# 0=left    1=top    2=right    3=bottom
+@persist Rainbow:array Colours:number 
+
+function drawBox(X_, Y_, W_, H_) {
+    Step += 1
+    EGP:egpBox(Step, vec2(X_, Y_), vec2(W_, H_))
+    EGP:egpColor(Step, Rainbow[(Step-1)%Colours+1, vector])
+}
+
+if (clk("step")) {
+    local Length = min(W, H)
+    local Bx = X
+    if (Side==2) {Bx += W - Length}
+    local By = Y
+    if (Side==3) {By += H - Length}
+    drawBox(Bx, By, Length, Length)
+    # Adjust our new region
+    if (Side==0) {X += Length}
+    if (Side==1) {Y += Length}
+    if (Side%2==0) {
+        W -= Length
+        if (W == 0) {
+            EGP:egpBoxOutline(Step+1, vec2(0, 0), EGPS)
+            EGP:egpColor(Step+1, vec(255,255,255))
+        } else {
+            if (W < Length) {Side = (Side+1)%4}
+            timer("step", 700)
+        }
+    } else {
+        H -= Length
+        if (H == 0) {
+            EGP:egpBoxOutline(Step+1, vec2(0, 0), EGPS)
+            EGP:egpColor(Step+1, vec(255,255,255))
+        } else {
+            if (H < Length) {Side = (Side+1)%4}
+            timer("step", 700)
+        }
+    }
+    
+}
+elseif (~Ratio) {
+    EGP:egpClear()
+    X = 0
+    W = EGPS:x()
+    H = EGPS:y() / Ratio
+    Y = EGPS:y()/2 - H/2
+    Step = 1  
+    EGP:egpBox(Step, vec2(X, Y), vec2(W, H))
+    EGP:egpColor(Step, vec(255, 255, 255))
+    Side = 0
+    timer("step", 1000)
+}
+elseif (first()|(~EGP&->EGP)) {
+    EGP:egpClear()
+    EGP:egpDrawTopLeft(1)
+    EGPS = EGP:egpSize()
+    Rainbow = array()
+    Rainbow:pushVector(vec(255, 0, 0))     # Red
+    Rainbow:pushVector(vec(255, 150, 0))   # Orange
+    Rainbow:pushVector(vec(255, 255, 0))   # Yellow
+    Rainbow:pushVector(vec(0, 255, 0))     # Green
+    Rainbow:pushVector(vec(0, 255, 255))   # Cyan
+    Rainbow:pushVector(vec(0, 0, 200))     # Blue
+    Rainbow:pushVector(vec(150, 0, 200))   # Violet
+    Rainbow:pushVector(vec(255, 0, 255))   # Magenta
+    Colours = 8
+}
