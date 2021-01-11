@@ -1,4 +1,4 @@
-@name Descent Visualizer
+@name Descent Visualiser
 #[
     Author: Matthew (FaceInCake) Eppel
     Date: Jan 9, 2021
