@@ -1,0 +1,78 @@
+@name Auto Checkpoint
+#[
+    Author: Matthew (FaceInCake) Eppel
+    Date: April 14, 2020
+    Copyright: Public, go nuts
+    
+    This program automatically generates
+    checkpoints in front of the linked
+    vehicle, which must be drove through
+    to spawn the next one. Indefinately.
+]#
+@inputs Vehicle:entity
+@persist Vehicle_:entity [CP1pos CP2pos HoloScale]:vector [CP1ang CP2ang]:angle CPradius HoloNum Model:string
+@trigger Vehicle
+
+function randomizeNextCheckpoint() {
+    
+    # TODO: If the next CP pos (PLUS A BIT MORE DISTANCE) is outside the map
+    # Trace rays beside the CP, (also do height incase of bumpy floor)
+    # untill a valid spot is found. (Remember buffer distance!)
+    
+    CP1pos = CP2pos
+    CP1ang = CP2ang
+    DA = randint(-45, 45)
+    CP2ang = CP2ang:setYaw(CP1ang:yaw() + DA)
+    CP2pos = CP1pos + CP2ang:forward() * randint(1500, 2000)
+    CP2ang = CP2ang:setYaw(CP2ang:yaw() + DA)
+    holoCreate(HoloNum, CP2pos + CP2ang:right()*CPradius, HoloScale, CP2ang)
+    holoPos(1, CP1pos + CP1ang:up()*200)
+    holoAng(1, CP1ang)
+    holoCreate(HoloNum+1, CP2pos - CP2ang:right()*CPradius, HoloScale, CP2ang)
+    HoloNum += 2
+}
+
+if (tickClk()) {
+    DAng = bearing(CP1pos, CP1ang, Vehicle_:pos())
+    if (DAng < 90 & DAng > -90) {
+        CP1pos = CP1pos:setZ(Vehicle_:pos():z())
+        if (CP1pos:distance(Vehicle_:pos()) < CPradius) {
+            randomizeNextCheckpoint()
+        }
+    }
+}
+elseif (~Vehicle | first()) {
+    if (->Vehicle) {
+        Vehicle_ = Vehicle
+    } else {
+        Vehicle_ = entity():getConnectedEntities()[2, entity]
+    }
+    if (!Vehicle_:isVehicle()) {
+        print("Connected entity is not a Vehicle")
+        exit()
+    } else {
+        print("Vehicle connected.")
+        print(Vehicle_:model())
+    }
+    # Upon linking a vehicle
+    propSpawnUndo(0)
+    propSpawnEffect(0)
+    propDeleteAll()
+    Model = "models/props_trainstation/trainstation_post001.mdl"
+    HoloNum = 2
+    HoloScale = vec(0.5, 0.5, 100)
+    CPradius = 150
+    # This holo shows the currently active checkpoint
+    holoCreate(1)
+    holoScaleUnits(1, vec(5, CPradius*2, 5))
+    holoColor(1, vec(255, 255, 50))
+    # Randomize the first checkpoint ourselves first, here, then we just call the function
+    # Because the function generates the next checkpoint off of the previous one
+    CP2ang = ang(0, Vehicle:forward():toAngle():yaw(), 0)
+    CP2pos = Vehicle_:pos() + CP2ang:forward() * 1000
+    holoCreate(HoloNum, CP2pos + CP2ang:right()*CPradius, HoloScale, CP2ang)
+    holoCreate(HoloNum+1, CP2pos - CP2ang:right()*CPradius, HoloScale, CP2ang)
+    HoloNum += 2
+    randomizeNextCheckpoint()
+    runOnTick(1)
+}
