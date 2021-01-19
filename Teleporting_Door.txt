@@ -4,10 +4,8 @@
     Date: Jan 10, 2021
     Copyright (c) MIT 2021 Matthew Eppel
     
-    Simply place this E2 onto a train to have rail tracks
-    be created infront of the train at all times. You can
-    also use A & D to turn, and sprint to make shorter distances.
-    walk will make you go up, sprint+walk goes down.
+    "summon thy door" - creates a door infront of  you which teleports you to and from the E2 chip door
+    "recall thy door" - deletes the spawned door, the E2 chip door always exists
 ]#
 @model models/props_interiors/elevatorshaft_door01a.mdl
 @persist Door:entity Cooldown:number DOOR_HEIGHT:number
