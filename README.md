@@ -1,6 +1,7 @@
-# Expression2-Programs
-Contains programs for Expression 2 in G-mod. Enjoy.
+Contains dupes and E2s for Gmod, mainly sandbox mode of course.
 
-Feel free to copy and paste the code for yourself.
+`SingleE2s` - contains single file E2s to use
 
-I try to make the code final and robust so I often forget to release stuff.
+`SingleAdvDupe2s` - contains dupes that have no other dependencies
+
+Every other folder is it's own project and contains a README on how to use it.
