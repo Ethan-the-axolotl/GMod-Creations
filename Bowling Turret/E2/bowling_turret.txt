@@ -1,0 +1,141 @@
+@name Bowling Turret
+#[
+    Purpose: Spawns balls to fire at people
+    Author: Matthew (FaceInCake) Eppel
+    Date:  July 17, 2020
+    Copyright: Free to share; do not sell; do not claim false ownership; do not remove this info.
+
+    "target <player>" - The turret will continiously fire at the player with that name
+    "stop firing" - The turret will stop targeting what it previously was
+    You can also RMB while holding R with the HL2 revolver to fire at whoever's closest to where you'e aiming.
+]#
+@inputs Target:entity # Incase you want to wire input a target
+@inputs FireDelay # Incase you want to wire input the fire delay
+@persist ProjSpeed # Speed of the projectile
+@persist Projs:array # All the projectiles currently out right now
+@persist Stored:entity # Current target being fired at
+@persist Delay # Fire delay of the turret
+@autoupdate
+
+function number fireAt(Ent:entity) {
+    if (!Ent:isValid()) {return -2}
+    if (propCanCreate()) {
+        if (Ent:isPlayer() & Ent:inVehicle()) {
+            Ent = Ent:vehicle()
+        }
+        local TurretPos = entity():pos() + vec(0, 0, 18)
+        local TargetPos = Ent:pos() + Ent:boxCenter()
+        local TurretToTarget = TurretPos - TargetPos
+        local Dist = TurretToTarget:length()
+        local TargetSpd = Ent:vel():length()
+        local AngBetween = 0.0
+        local LeadAng = 0.0
+        local Time = 0.0
+        local LeadPos = TargetPos# + ???
+        if (TargetSpd) {
+            AngBetween = acos(TurretToTarget:dot(Target:vel()) / (Dist*TargetSpd))
+            LeadAng = asin(TargetSpd*sin(AngBetween)/ProjSpeed)
+            Time = Dist*sin(AngBetween)*csc(AngBetween+LeadAng)/ProjSpeed
+            LeadPos += Ent:vel() * Time
+        } else {
+            Time = Dist / ProjSpeed
+            # LeadPos += 0.0 * Time
+        }
+        local LeadVec = (LeadPos - TurretPos):normalized()
+        local FinalVelocity = LeadVec * ProjSpeed
+        local Prop = propSpawn(
+            "models/hunter/misc/sphere075x075.mdl",
+            TurretPos, 
+            ang(), 0
+        )
+        Prop:setMaterial("phoenix_storms/metalfloor_2-3")
+        if (Ent:isPlayer()) {
+            if (Ent:isOnGround()) {
+                Prop:propGravity(0)
+            }
+        } else {
+            Prop:propGravity(0)
+        }
+        Prop:setMass(300)
+        Prop:propDrag(0)
+        Prop:propSetVelocityInstant(FinalVelocity)
+        Prop:propSetVelocity(FinalVelocity)
+        Projs:pushEntity(Prop)
+        timer("cleanproj_"+Prop:id(), (Time+1) * 1000)
+        return 0
+    } else {
+        return -1
+    }
+}
+
+local K = keyClk(owner())
+if (K==1) {
+    if (owner():keyReload()) {
+        local E = owner():aimEntity()
+        if (E:health()|E:isNPC()) { # some npcs have a health of 0 (ex. rollermine)
+            fireAt(E)
+        } else {
+            findIncludeEntities(players())
+            findIncludeClass("npc_")
+            findIncludeClass("_vehicle_")
+            local P = owner():aimPos()
+            local N = findInSphere(P, 512)
+            if (N) {
+                E = findClosest(P)
+                if (E) {
+                    fireAt(E)
+                }
+            }
+        }
+    }
+}
+elseif (~Target) {
+    if (Target) {
+        fireAt(Target)
+        Stored = Target
+        timer("fire", Delay)
+    } else {
+        Stored = noentity()
+        stoptimer("fire")
+    }
+}
+elseif (~FireDelay) {
+    if (FireDelay) {
+        Delay = FireDelay
+    } else {
+        Delay = 600
+    }
+}
+elseif (chatClk()) {
+    if (lastSpoke()==owner()) {
+        local Msg = lastSaid():trim():lower()
+        if (Msg:sub(1,7)=="target ") {
+            local P = findPlayerByName(Msg:sub(8))
+            if (P) {
+                fireAt(P)
+                Stored = P
+                timer("fire", Delay)
+            } else {
+                print("! Player not found")
+            }
+        }
+        elseif (Msg=="stop firing") {
+            stoptimer("fire")
+        }
+    }
+}
+elseif (clk("fire")) {
+    fireAt(Stored)
+    timer("fire", Delay)
+}
+elseif (clkName():sub(1,10)=="cleanproj_") {
+    Projs:removeEntity(1):propDelete()
+}
+elseif (first()) {
+    runOnChat(1)
+    runOnKeys(owner(), 1, array("mouse_right"))
+    propSpawnUndo(0)
+    propSpawnEffect(0)
+    ProjSpeed = 2000
+    Delay = 600
+}

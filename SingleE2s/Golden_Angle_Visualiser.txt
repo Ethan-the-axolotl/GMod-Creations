@@ -1,0 +1,42 @@
+@name Golden Angle Visualiser
+#[
+    Author: Matthew (FaceInCake) Eppel
+    Date: ???, 2019?
+    (c) Notice: Free to take and share. Don't claim false ownership. Don't remove this notice.
+    
+    Uses the inputted 'Dang' to draw a spiral
+    onto the wired EGP.
+    Simply input the golden angle to see the magic.
+    
+    Remember that the golden angle
+    is equal to 2.39996322972865332...
+]#
+@inputs EGP:wirelink Dang:number
+@persist EGPS:vector2 Num Dlen Points:array Step
+
+
+if (clk("step")) {
+    local X = cos(Dang*Step*180/pi()) * Dlen * sqrt(Step) + EGPS:x()/2
+    local Y = sin(Dang*Step*180/pi()) * Dlen * sqrt(Step) + EGPS:y()/2
+    Step += 1
+    EGP:egpBox(Step, vec2(X, Y), vec2(2,2))
+    EGP:egpColor(Step, vec(255,255,255))
+    if (Step < Num) {
+        timer("step", 20)
+    }
+}
+elseif (~Dang) {
+    if (Dang) {
+        Step = 0
+        timer("step", 20)
+    }
+}
+elseif (first()|(~EGP&->EGP)) {
+    EGP:egpClear()
+    EGP:egpDrawTopLeft(1)
+    EGPS = EGP:egpSize()
+    Num = 1024 # Number of points
+    Dlen = EGPS:x() / sqrt(Num-1) # Radius between each new point
+    Points = array()
+    Step = 0
+}

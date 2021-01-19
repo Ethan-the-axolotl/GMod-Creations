@@ -1,0 +1,42 @@
+@name Teleporter Reciever
+@inputs ID:string Pos:vector
+@persist LastPlayer:entity
+@outputs Open
+@autoupdate
+
+if (tickClk()) {
+    if (Pos:distance2(LastPlayer:pos()) > 76*76) {
+        Open = 0
+        LastPlayer = noentity()
+        runOnTick(0)
+    }
+}
+elseif (dsClk()) {
+    if (ID) {
+        if (Pos) {
+            if (dsClkName() == ID) {
+                local E = dsGetEntity()
+                if (E:isPlayer()) {
+                    local D = soundDuration("ambient/machines/teleport1.wav")
+                    entity():soundPlay(1, D, "ambient/machines/teleport1.wav")
+                    E:teleport(Pos + vec(0, 0, 8))
+                    LastPlayer = E
+                    Open = 1
+                    runOnTick(1)
+                }
+            }
+        }
+    }
+}
+elseif (~ID) {
+    if (ID) {
+        dsClearGroups()
+        dsJoinGroup(ID)
+    }
+}
+elseif (first()) {
+    dsSetScope(0)
+    if (ID) {
+        dsJoinGroup(ID)
+    }
+}

@@ -1,0 +1,21 @@
+@name Teleporter Transmitter
+@inputs ID:string TriggerEnts:array
+
+if (~TriggerEnts) {
+    if (ID) {
+        if (TriggerEnts:count()==1) {
+            local T = TriggerEnts[1, entity]
+            if (T:isPlayer()) {
+                local R = dsProbe(ID, 0)
+                if (R:count()==1) {
+                    local D = soundDuration("ambient/machines/teleport1.wav")
+                    entity():soundPlay(1, D, "ambient/machines/teleport1.wav")
+                    local E = R[1, entity]
+                    dsSendDirect(ID, E, T)
+                }else{
+                    print("[Teleporter:"+ID+"] No teleport reciever")
+                }
+            }
+        }
+    }
+}

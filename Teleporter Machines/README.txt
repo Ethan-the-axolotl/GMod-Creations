@@ -1,0 +1,1 @@
+To use: there's a Constant Value gate on top of the machine, the white chip. The teleporters must share the same name. Set it to what you like, but the name will display on the text screen, so make it sensible.
